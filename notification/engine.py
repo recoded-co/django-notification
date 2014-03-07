@@ -107,7 +107,6 @@ def send__all_grouped(*args):
             notices = pickle.loads(base64.b64decode(queued_batch.pickled_data))
             for user, label, extra_context, sender in notices:
                 try:
-                    user = User.objects.get(pk=user)
                     logging.info("grouping notice {} to {}".format(label, user))
                     if user in grouped:
                         grouped[user].append((user, label, extra_context, sender))
@@ -132,8 +131,7 @@ def send__all_grouped(*args):
 
         for user in grouped:
             notice_list = grouped[user]
-            user_obj = User.objects.get(pk=user)
-            if notification.send_now_grouped(user_obj, notice_list, extra_context, user_obj):
+            if notification.send_now_grouped(user, notice_list, extra_context, user):
                 sent_actual += 1
             grouped_batches[user].delete()
             batches += 1
