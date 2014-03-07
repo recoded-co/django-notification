@@ -132,7 +132,8 @@ def send__all_grouped(*args):
 
         for user in grouped:
             notice_list = grouped[user]
-            if notification.send_now_grouped(user, notice_list, extra_context):
+            user_obj = User.objects.get(pk=user)
+            if notification.send_now_grouped(user_obj, notice_list, extra_context, user_obj):
                 sent_actual += 1
             grouped_batches[user].delete()
             batches += 1
