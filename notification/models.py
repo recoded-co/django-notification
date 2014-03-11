@@ -173,6 +173,7 @@ def send_now(users, label, extra_context=None, sender=None):
     activate(current_language)
     return sent
 
+
 def send_now_grouped(user, notice_list, extra_context=None, sender=None):
     """
     Creates a new grouped notice.

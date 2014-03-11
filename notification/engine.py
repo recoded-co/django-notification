@@ -107,11 +107,12 @@ def send__all_grouped(*args):
             notices = pickle.loads(base64.b64decode(queued_batch.pickled_data))
             for user, label, extra_context, sender in notices:
                 try:
+                    user = User.objects.get(pk=user)
                     logging.info("grouping notice {} to {}".format(label, user))
                     if user in grouped:
-                        grouped[user].append((user, label, extra_context, sender))
+                        grouped[user].append((user.id, label, extra_context, sender))
                     else:
-                        grouped[user] = [(user, label, extra_context, sender)]
+                        grouped[user] = [(user.id, label, extra_context, sender)]
                     # call this once per user to be atomic and allow for logging to
                     # accurately show how long each takes.
                 except User.DoesNotExist:
@@ -121,21 +122,18 @@ def send__all_grouped(*args):
                             label,
                             user)
                     )
-        queued_batch.delete()
-
+            queued_batch.delete()
         for user in grouped:
             notice_list = grouped[user]
             user_batch = NoticeQueueBatch(pickled_data=base64.b64encode(pickle.dumps(notice_list)))
             user_batch.save()
             grouped_batches[user] = user_batch
-
         for user in grouped:
             notice_list = grouped[user]
             if notification.send_now_grouped(user, notice_list, extra_context, user):
                 sent_actual += 1
             grouped_batches[user].delete()
             batches += 1
-
         emitted_notices.send(
             sender=NoticeQueueBatch,
             batches=batches,
@@ -159,7 +157,6 @@ def send__all_grouped(*args):
         logging.debug("releasing lock...")
         lock.release()
         logging.debug("released.")
-
     logging.info("")
     logging.info("{} batches, {} sent".format(batches, sent,))
     logging.info("done in {:.2f} seconds".format(time.time() - start_time))
