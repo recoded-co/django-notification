@@ -250,7 +250,7 @@ def queue(users, label, extra_context=None, sender=None):
     if isinstance(users, QuerySet):
         users = [row["pk"] for row in users.values("pk")]
     else:
-        users = [user.pk for user in users]
+        users = [user for user in users]
     notices = []
     for user in users:
         notices.append((user, label, extra_context, sender))
